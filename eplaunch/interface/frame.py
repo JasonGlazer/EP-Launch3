@@ -15,6 +15,10 @@ class EpLaunchFrame(wx.Frame):
 
     def __init__(self, *args, **kwargs):
         kwargs["style"] = wx.DEFAULT_FRAME_STYLE
+
+        # Get saved settings
+        self.config = wx.Config("EP-Launch3")
+
         wx.Frame.__init__(self, *args, **kwargs)
         self.split_left_right = wx.SplitterWindow(self, wx.ID_ANY)
 
@@ -53,6 +57,7 @@ class EpLaunchFrame(wx.Frame):
 
     def close_frame(self):
         """May do additional things during close, including saving the current window state/settings"""
+        self.save_config()
         self.Close()
 
     def build_primary_toolbar(self):
@@ -201,19 +206,23 @@ class EpLaunchFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.handle_menu_edit_paste, menu_edit_paste)
         self.menu_bar.Append(edit_menu, "&Edit")
 
+
         folder_menu = wx.Menu()
         recent_folder_menu = folder_menu.Append(31, "Recent", "Recent folders where a workflow as run.")
         folder_menu.AppendSeparator()
-        folder_menu.Append(32, "c:\\EnergyPlus8-8-0")
-        folder_menu.Append(33, "c:\\documents")
-        folder_menu.Append(34, "c:\\projectX\\working\\task1")
-        folder_menu.Append(35, "c:\\projectY\\dev\\task2")
+        countFolderRecent = self.config.ReadInt("/FolderMenu/Recent/Count",0)
+        for count in range(0,countFolderRecent):
+            folderName = self.config.Read("/FolderMenu/Recent/Path-{:02d}".format(count))
+            if folderName:
+                folder_menu.Append(32, folderName )
         folder_menu.AppendSeparator()
         folder_menu.Append(36, "Favorites")
         folder_menu.AppendSeparator()
-        folder_menu.Append(37, "c:\\EnergyPlus8-8-0\Examples")
-        folder_menu.Append(38, "c:\\documents\\about")
-        folder_menu.Append(39, "c:\\projectZ\\do")
+        countFolderFavorite = self.config.ReadInt("/FolderMenu/Favorite/Count",0)
+        for count in range(0,countFolderFavorite):
+            folderName = self.config.Read("/FolderMenu/Favorite/Path-{:02d}".format(count))
+            if folderName:
+                folder_menu.Append(32, folderName )
         folder_menu.AppendSeparator()
         folder_menu.Append(310, "Add Current Folder to Favorites")
         folder_menu.Append(311, "Remove Current Folder from Favorites")
@@ -227,16 +236,19 @@ class EpLaunchFrame(wx.Frame):
         weather_menu.AppendSeparator()
         weather_menu.Append(42, "Recent")
         weather_menu.AppendSeparator()
-        weather_menu.Append(43, "Chicago.TMY")
-        weather_menu.Append(44, "Boston.TMY")
-        weather_menu.Append(45, "Philadelphia.TMY")
-        weather_menu.Append(46, "Austin.TMY")
+        countWeatherRecent = self.config.ReadInt("/WeatherMenu/Recent/Count",0)
+        for count in range(0,countWeatherRecent):
+            weatherName = self.config.Read("/WeatherMenu/Recent/Path-{:02d}".format(count))
+            if weatherName:
+                weather_menu.Append(32, weatherName )
         weather_menu.AppendSeparator()
         weather_menu.Append(47, "Favorites")
         weather_menu.AppendSeparator()
-        weather_menu.Append(48, "Detroit.TMY")
-        weather_menu.Append(49, "Denver.TMY")
-        weather_menu.Append(410, "San Francisco.TMY")
+        countWeatherFavorite = self.config.ReadInt("/WeatherMenu/Favorite/Count",0)
+        for count in range(0,countWeatherFavorite):
+            weatherName = self.config.Read("/WeatherMenu/Favorite/Path-{:02d}".format(count))
+            if weatherName:
+                weather_menu.Append(32, weatherName )
         weather_menu.AppendSeparator()
         weather_menu.Append(411, "Add Weather to Favorites")
         weather_menu.Append(412, "Remove Weather from Favorites")
@@ -655,3 +667,5 @@ class EpLaunchFrame(wx.Frame):
         self.raw_files.SetColumnWidth(2,-1 )
         self.raw_files.SetColumnWidth(3,-1 )
 
+    def save_config(self):
+        x=1
