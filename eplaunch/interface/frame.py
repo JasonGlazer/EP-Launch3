@@ -48,6 +48,12 @@ class EpLaunchFrame(wx.Frame):
         self.out_tb = None
         self.menu_bar = None
 
+        self.FOLDER_RECENT_ID = 3001
+        self.FOLDER_FAVORITE_ID = 3002
+        self.WEATHER_RECENT_ID = 4001
+        self.WEATHER_FAVORITE_ID = 4002
+
+
         self.build_primary_toolbar()
         self.build_out_toolbar()
         self.build_menu_bar()
@@ -206,53 +212,52 @@ class EpLaunchFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.handle_menu_edit_paste, menu_edit_paste)
         self.menu_bar.Append(edit_menu, "&Edit")
 
-
-        folder_menu = wx.Menu()
-        recent_folder_menu = folder_menu.Append(31, "Recent", "Recent folders where a workflow as run.")
-        folder_menu.AppendSeparator()
+        self.folder_menu = wx.Menu()
+        recent_folder_menu = self.folder_menu.Append(31, "Recent", "Recent folders where a workflow as run.")
+        self.folder_menu.AppendSeparator()
         countFolderRecent = self.config.ReadInt("/FolderMenu/Recent/Count",0)
         for count in range(0,countFolderRecent):
             folderName = self.config.Read("/FolderMenu/Recent/Path-{:02d}".format(count))
             if folderName:
-                folder_menu.Append(32, folderName )
-        folder_menu.AppendSeparator()
-        folder_menu.Append(36, "Favorites")
-        folder_menu.AppendSeparator()
+                self.folder_menu.Append(self.FolderRecentID, folderName )
+        self.folder_menu.AppendSeparator()
+        self.folder_menu.Append(36, "Favorites")
+        self.folder_menu.AppendSeparator()
         countFolderFavorite = self.config.ReadInt("/FolderMenu/Favorite/Count",0)
         for count in range(0,countFolderFavorite):
             folderName = self.config.Read("/FolderMenu/Favorite/Path-{:02d}".format(count))
             if folderName:
-                folder_menu.Append(32, folderName )
-        folder_menu.AppendSeparator()
-        folder_menu.Append(310, "Add Current Folder to Favorites")
-        folder_menu.Append(311, "Remove Current Folder from Favorites")
-        self.menu_bar.Append(folder_menu, "F&older")
+                self.folder_menu.Append(self.FolderFavoriteID, folderName )
+        self.folder_menu.AppendSeparator()
+        self.folder_menu.Append(310, "Add Current Folder to Favorites")
+        self.folder_menu.Append(311, "Remove Current Folder from Favorites")
+        self.menu_bar.Append(self.folder_menu, "F&older")
         # disable the menu items that are just information
         self.menu_bar.Enable(31,False)
         self.menu_bar.Enable(36,False)
 
-        weather_menu = wx.Menu()
-        weather_menu.Append(41, "Select..")
-        weather_menu.AppendSeparator()
-        weather_menu.Append(42, "Recent")
-        weather_menu.AppendSeparator()
+        self.weather_menu = wx.Menu()
+        self.weather_menu.Append(41, "Select..")
+        self.weather_menu.AppendSeparator()
+        self.weather_menu.Append(42, "Recent")
+        self.weather_menu.AppendSeparator()
         countWeatherRecent = self.config.ReadInt("/WeatherMenu/Recent/Count",0)
         for count in range(0,countWeatherRecent):
             weatherName = self.config.Read("/WeatherMenu/Recent/Path-{:02d}".format(count))
             if weatherName:
-                weather_menu.Append(32, weatherName )
-        weather_menu.AppendSeparator()
-        weather_menu.Append(47, "Favorites")
-        weather_menu.AppendSeparator()
+                self.weather_menu.Append(self.WEATHER_RECENT_ID, weatherName )
+        self.weather_menu.AppendSeparator()
+        self.weather_menu.Append(47, "Favorites")
+        self.weather_menu.AppendSeparator()
         countWeatherFavorite = self.config.ReadInt("/WeatherMenu/Favorite/Count",0)
         for count in range(0,countWeatherFavorite):
             weatherName = self.config.Read("/WeatherMenu/Favorite/Path-{:02d}".format(count))
             if weatherName:
-                weather_menu.Append(32, weatherName )
-        weather_menu.AppendSeparator()
-        weather_menu.Append(411, "Add Weather to Favorites")
-        weather_menu.Append(412, "Remove Weather from Favorites")
-        self.menu_bar.Append(weather_menu, "&Weather")
+                self.weather_menu.Append(self.WEATHER_FAVORITE_ID, weatherName )
+        self.weather_menu.AppendSeparator()
+        self.weather_menu.Append(411, "Add Weather to Favorites")
+        self.weather_menu.Append(412, "Remove Weather from Favorites")
+        self.menu_bar.Append(self.weather_menu, "&Weather")
         # disable the menu items that are just information
         self.menu_bar.Enable(42,False)
         self.menu_bar.Enable(47,False)
@@ -668,4 +673,33 @@ class EpLaunchFrame(wx.Frame):
         self.raw_files.SetColumnWidth(3,-1 )
 
     def save_config(self):
-        x=1
+        # in Windows using RegEdit these appear in:
+        #    HKEY_CURRENT_USER\Software\EP-Launch3
+
+        folder_menu_list = self.folder_menu.GetMenuItems()
+
+        # save folder menu recent menu items to configuration file
+        folder_menu_recent_labels =  [menu_item.GetLabel() for menu_item in folder_menu_list if menu_item.GetId() == self.FOLDER_RECENT_ID] #get recent folders
+        self.config.WriteInt("/FolderMenu/Recent/Count",len(folder_menu_recent_labels))
+        for count, pathlabel in enumerate(folder_menu_recent_labels):
+            self.config.Write("/FolderMenu/Recent/Path-{:02d}".format(count), pathlabel)
+
+        # save folder menu favorite menu items to configuration file
+        folder_menu_favorite_labels =  [menu_item.GetLabel() for menu_item in folder_menu_list if menu_item.GetId() == self.FOLDER_FAVORITE_ID] #get favorite folders
+        self.config.WriteInt("/FolderMenu/Favorite/Count",len(folder_menu_favorite_labels))
+        for count, pathlabel in enumerate(folder_menu_favorite_labels):
+            self.config.Write("/FolderMenu/Favorite/Path-{:02d}".format(count), pathlabel)
+
+        weather_menu_list = self.weather_menu.GetMenuItems()
+
+        # save weather menu recent menu items to configuration file
+        weather_menu_recent_labels =  [menu_item.GetLabel() for menu_item in weather_menu_list if menu_item.GetId() == self.WEATHER_RECENT_ID] #get recent weather
+        self.config.WriteInt("/WeatherMenu/Recent/Count",len(weather_menu_recent_labels))
+        for count, pathlabel in enumerate(weather_menu_recent_labels):
+            self.config.Write("/WeatherMenu/Recent/Path-{:02d}".format(count), pathlabel)
+
+        # save weather menu favorite menu items to configuration file
+        weather_menu_favorite_labels =  [menu_item.GetLabel() for menu_item in weather_menu_list if menu_item.GetId() == self.WEATHER_FAVORITE_ID] #get favorite weather
+        self.config.WriteInt("/WeatherMenu/Favorite/Count",len(weather_menu_favorite_labels))
+        for count, pathlabel in enumerate(weather_menu_favorite_labels):
+            self.config.Write("/WeatherMenu/Favorite/Path-{:02d}".format(count), pathlabel)
