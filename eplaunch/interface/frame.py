@@ -49,11 +49,10 @@ class EpLaunchFrame(wx.Frame):
         self.out_tb = None
         self.menu_bar = None
 
-        self.FOLDER_RECENT_ID = 3001
-        self.FOLDER_FAVORITE_ID = 3002
-        self.WEATHER_RECENT_ID = 4001
-        self.WEATHER_FAVORITE_ID = 4002
-
+        self.FOLDER_RECENT = 1
+        self.FOLDER_FAVORITE = 2
+        self.WEATHER_RECENT = 3
+        self.WEATHER_FAVORITE = 4
 
         self.build_primary_toolbar()
         self.build_out_toolbar()
@@ -229,7 +228,7 @@ class EpLaunchFrame(wx.Frame):
         for count in range(0,countFolderRecent):
             folderName = self.config.Read("/FolderMenu/Recent/Path-{:02d}".format(count))
             if folderName:
-                self.folder_menu.Append(self.FolderRecentID, folderName )
+                self.folder_menu.Append(self.FolderRecentID + count, folderName )
         self.folder_menu.AppendSeparator()
         self.folder_menu.Append(36, "Favorites")
         self.folder_menu.AppendSeparator()
@@ -237,7 +236,7 @@ class EpLaunchFrame(wx.Frame):
         for count in range(0,countFolderFavorite):
             folderName = self.config.Read("/FolderMenu/Favorite/Path-{:02d}".format(count))
             if folderName:
-                self.folder_menu.Append(self.FolderFavoriteID, folderName )
+                self.folder_menu.Append(self.FolderFavoriteID + count, folderName )
         self.folder_menu.AppendSeparator()
         self.folder_menu.Append(310, "Add Current Folder to Favorites")
         self.folder_menu.Append(311, "Remove Current Folder from Favorites")
@@ -247,15 +246,23 @@ class EpLaunchFrame(wx.Frame):
         self.menu_bar.Enable(36,False)
 
         self.weather_menu = wx.Menu()
-        self.weather_menu.Append(41, "Select..")
+        menu_weather_select = self.weather_menu.Append(41, "Select..")
+        self.Bind(wx.EVT_MENU, self.handle_menu_weather_select, menu_weather_select)
         self.weather_menu.AppendSeparator()
         self.weather_menu.Append(42, "Recent")
         self.weather_menu.AppendSeparator()
+        first_menu_id = self.get_menu_first_id(self.WEATHER_RECENT)
         countWeatherRecent = self.config.ReadInt("/WeatherMenu/Recent/Count",0)
         for count in range(0,countWeatherRecent):
             weatherName = self.config.Read("/WeatherMenu/Recent/Path-{:02d}".format(count))
             if weatherName:
-                self.weather_menu.Append(self.WEATHER_RECENT_ID, weatherName )
+                self.weather_menu.Append(first_menu_id + count, weatherName )
+
+        #debugging only
+        self.weather_menu.Append(first_menu_id , "Chicago.epw" )
+        self.weather_menu.Append(first_menu_id + 1, "StLouis.epw" )
+
+
         self.weather_menu.AppendSeparator()
         self.weather_menu.Append(47, "Favorites")
         self.weather_menu.AppendSeparator()
@@ -263,7 +270,7 @@ class EpLaunchFrame(wx.Frame):
         for count in range(0,countWeatherFavorite):
             weatherName = self.config.Read("/WeatherMenu/Favorite/Path-{:02d}".format(count))
             if weatherName:
-                self.weather_menu.Append(self.WEATHER_FAVORITE_ID, weatherName )
+                self.weather_menu.Append(self.WEATHER_FAVORITE_ID + count, weatherName )
         self.weather_menu.AppendSeparator()
         self.weather_menu.Append(411, "Add Weather to Favorites")
         self.weather_menu.Append(412, "Remove Weather from Favorites")
@@ -420,6 +427,20 @@ class EpLaunchFrame(wx.Frame):
         self.menu_bar.Append(help_menu, "&Help")
 
         self.SetMenuBar(self.menu_bar)
+
+        #found = self.menu_bar.FindItemById(23)
+        #print("finding the menu item: ", found.GetLabel(), found.GetId())
+
+        #found = self.menu_bar.FindItemById(310)
+        #print("finding the menu item: ", found.GetLabel(), found.GetId())
+
+        #found = self.menu_bar.FindItemById(9910)
+        #print("finding the menu item: ", found.GetLabel(), found.GetId())
+
+        self.get_menu_list_of_files( self.WEATHER_RECENT )
+
+        #print (self.menu_bar.GetMenus())
+
 
     def __set_properties(self):
         self.SetTitle(_("EP-Launch 3"))
@@ -712,3 +733,45 @@ class EpLaunchFrame(wx.Frame):
         self.config.WriteInt("/WeatherMenu/Favorite/Count",len(weather_menu_favorite_labels))
         for count, pathlabel in enumerate(weather_menu_favorite_labels):
             self.config.Write("/WeatherMenu/Favorite/Path-{:02d}".format(count), pathlabel)
+
+    def handle_menu_weather_select(self, event):
+        filename = wx.FileSelector("Select a weather file", wildcard="EnergyPlus Weather File(*.epw)|*.epw",
+                                   flags= wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        # check if in recent
+        weather_menu_list = self.weather_menu.GetMenuItems()
+        weather_menu_recent_labels =  [menu_item.GetLabel() for menu_item in weather_menu_list if menu_item.GetId() == self.WEATHER_RECENT_ID] #get recent weather
+        if filename not in weather_menu_recent_labels:
+            self.weather_menu.Append(400, filename)
+
+    def get_menu_first_id(self,kind_of_list):
+        FOLDER_RECENT_ID = 3100
+        FOLDER_FAVORITE_ID = 3200
+        WEATHER_RECENT_ID = 4100
+        WEATHER_FAVORITE_ID = 4200
+        first_menu_id_lookup = [ FOLDER_RECENT_ID, FOLDER_FAVORITE_ID, WEATHER_RECENT_ID, WEATHER_FAVORITE_ID ]
+        return first_menu_id_lookup[ kind_of_list ]
+
+    def get_menu_list_of_files(self, kind_of_list):
+        first_menu_id = self.get_menu_first_id( kind_of_list )
+        list_of_files = []
+        for count in range(0, 8):
+            found = self.menu_bar.FindItemById( first_menu_id + count)
+            if found is not None:
+                print("finding the menu item: ", found.GetLabel(), found.GetId())
+                list_of_files.append(found.GetLabel())
+        return list_of_files
+
+    def put_menu_list_of_files(self, kind_of_list, list_of_menu_items):
+        self.delete_menu_of_files(kind_of_list)
+        first_menu_id = self.get_menu_first_id( kind_of_list )
+
+    def delete_menu_of_files(self, kind_of_list):
+        first_menu_id = self.get_menu_first_id( kind_of_list )
+        for count in range(0, 8):
+            found = self.menu_bar.FindItemById( first_menu_id + count)
+            if found is not None:
+                position_on_menu = self.menu_bar.FindMenu(found.GetLabel)
+                print("finding the menu item: ", found.GetLabel(), found.GetId())
+                list_of_files.append(found.GetLabel())
+
+
