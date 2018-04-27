@@ -9,6 +9,7 @@ from eplaunch.interface import viewer_dialog
 from eplaunch.interface import workflow_directories_dialog
 from eplaunch.workflows import manager as workflow_manager
 
+from eplaunch.filenamemenus.base import FileNameMenus
 
 # wx callbacks need an event argument even though we usually don't use it, so the next line disables that check
 # noinspection PyUnusedLocal
@@ -246,11 +247,11 @@ class EpLaunchFrame(wx.Frame):
         self.menu_bar.Enable(36,False)
 
         self.weather_menu = wx.Menu()
-        menu_weather_select = self.weather_menu.Append(41, "Select..")
+        menu_weather_select = self.weather_menu.Append(401, "Select..")
         self.Bind(wx.EVT_MENU, self.handle_menu_weather_select, menu_weather_select)
-        self.weather_menu.AppendSeparator()
-        self.weather_menu.Append(42, "Recent")
-        self.weather_menu.AppendSeparator()
+        self.weather_menu.Append(402, kind=wx.ITEM_SEPARATOR)
+        self.weather_menu.Append(403, "Recent")
+        self.weather_menu.Append(404, kind=wx.ITEM_SEPARATOR)
         first_menu_id = self.get_menu_first_id(self.WEATHER_RECENT)
         countWeatherRecent = self.config.ReadInt("/WeatherMenu/Recent/Count",0)
         for count in range(0,countWeatherRecent):
@@ -262,22 +263,25 @@ class EpLaunchFrame(wx.Frame):
         self.weather_menu.Append(first_menu_id , "Chicago.epw" )
         self.weather_menu.Append(first_menu_id + 1, "StLouis.epw" )
 
-
-        self.weather_menu.AppendSeparator()
-        self.weather_menu.Append(47, "Favorites")
-        self.weather_menu.AppendSeparator()
+        self.weather_menu.Append(405, kind=wx.ITEM_SEPARATOR)
+        self.weather_menu.Append(406, "Favorites")
+        self.weather_menu.Append(407, kind=wx.ITEM_SEPARATOR)
         countWeatherFavorite = self.config.ReadInt("/WeatherMenu/Favorite/Count",0)
         for count in range(0,countWeatherFavorite):
             weatherName = self.config.Read("/WeatherMenu/Favorite/Path-{:02d}".format(count))
-            if weatherName:
-                self.weather_menu.Append(self.WEATHER_FAVORITE_ID + count, weatherName )
-        self.weather_menu.AppendSeparator()
-        self.weather_menu.Append(411, "Add Weather to Favorites")
-        self.weather_menu.Append(412, "Remove Weather from Favorites")
+        #    if weatherName:
+        #        self.weather_menu.Append(self.WEATHER_FAVORITE_ID + count, weatherName )
+        self.weather_menu.Append(408, kind=wx.ITEM_SEPARATOR)
+        self.weather_menu.Append(409, "Add Weather to Favorites")
+        self.weather_menu.Append(410, "Remove Weather from Favorites")
+
+        self.weather_favorites = FileNameMenus(self.weather_menu, 407, 408)
+        self.weather_favorites.add_file_name_list(["this", "is", "a","test"])
+
         self.menu_bar.Append(self.weather_menu, "&Weather")
         # disable the menu items that are just information
-        self.menu_bar.Enable(42,False)
-        self.menu_bar.Enable(47,False)
+        self.menu_bar.Enable(403,False)
+        self.menu_bar.Enable(406,False)
 
         output_menu = wx.Menu()
 
@@ -752,12 +756,19 @@ class EpLaunchFrame(wx.Frame):
         return first_menu_id_lookup[ kind_of_list ]
 
     def get_menu_list_of_files(self, kind_of_list):
+        menu_list = self.weather_menu.GetMenuItems()
+        for count, menu_list_item in enumerate(menu_list):
+            print(count, menu_list_item.GetId(),menu_list_item.GetLabel(), menu_list_item.GetKind())
+
+
+
+        #
         first_menu_id = self.get_menu_first_id( kind_of_list )
         list_of_files = []
         for count in range(0, 8):
             found = self.menu_bar.FindItemById( first_menu_id + count)
             if found is not None:
-                print("finding the menu item: ", found.GetLabel(), found.GetId())
+                print("finding the menu items: ", found.GetLabel(), found.GetId())
                 list_of_files.append(found.GetLabel())
         return list_of_files
 
@@ -767,6 +778,7 @@ class EpLaunchFrame(wx.Frame):
 
     def delete_menu_of_files(self, kind_of_list):
         first_menu_id = self.get_menu_first_id( kind_of_list )
+        list_of_files = []
         for count in range(0, 8):
             found = self.menu_bar.FindItemById( first_menu_id + count)
             if found is not None:
