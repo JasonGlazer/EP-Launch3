@@ -422,20 +422,6 @@ class EpLaunchFrame(wx.Frame):
 
         self.SetMenuBar(self.menu_bar)
 
-        #found = self.menu_bar.FindItemById(23)
-        #print("finding the menu item: ", found.GetLabel(), found.GetId())
-
-        #found = self.menu_bar.FindItemById(310)
-        #print("finding the menu item: ", found.GetLabel(), found.GetId())
-
-        #found = self.menu_bar.FindItemById(9910)
-        #print("finding the menu item: ", found.GetLabel(), found.GetId())
-
-        self.get_menu_list_of_files( self.WEATHER_RECENT )
-
-        #print (self.menu_bar.GetMenus())
-
-
     def __set_properties(self):
         self.SetTitle(_("EP-Launch 3"))
         self.list_ctrl_files.AppendColumn(_("Status"), format=wx.LIST_FORMAT_LEFT, width=-1)
@@ -697,36 +683,10 @@ class EpLaunchFrame(wx.Frame):
         self.raw_files.SetColumnWidth(3,-1 )
 
     def save_config(self):
-        # in Windows using RegEdit these appear in:
-        #    HKEY_CURRENT_USER\Software\EP-Launch3
-
-        folder_menu_list = self.folder_menu.GetMenuItems()
-
-        # save folder menu recent menu items to configuration file
-        folder_menu_recent_labels =  [menu_item.GetLabel() for menu_item in folder_menu_list if menu_item.GetId() == self.FOLDER_RECENT_ID] #get recent folders
-        self.config.WriteInt("/FolderMenu/Recent/Count",len(folder_menu_recent_labels))
-        for count, pathlabel in enumerate(folder_menu_recent_labels):
-            self.config.Write("/FolderMenu/Recent/Path-{:02d}".format(count), pathlabel)
-
-        # save folder menu favorite menu items to configuration file
-        folder_menu_favorite_labels =  [menu_item.GetLabel() for menu_item in folder_menu_list if menu_item.GetId() == self.FOLDER_FAVORITE_ID] #get favorite folders
-        self.config.WriteInt("/FolderMenu/Favorite/Count",len(folder_menu_favorite_labels))
-        for count, pathlabel in enumerate(folder_menu_favorite_labels):
-            self.config.Write("/FolderMenu/Favorite/Path-{:02d}".format(count), pathlabel)
-
-        weather_menu_list = self.weather_menu.GetMenuItems()
-
-        # save weather menu recent menu items to configuration file
-        weather_menu_recent_labels =  [menu_item.GetLabel() for menu_item in weather_menu_list if menu_item.GetId() == self.WEATHER_RECENT_ID] #get recent weather
-        self.config.WriteInt("/WeatherMenu/Recent/Count",len(weather_menu_recent_labels))
-        for count, pathlabel in enumerate(weather_menu_recent_labels):
-            self.config.Write("/WeatherMenu/Recent/Path-{:02d}".format(count), pathlabel)
-
-        # save weather menu favorite menu items to configuration file
-        weather_menu_favorite_labels =  [menu_item.GetLabel() for menu_item in weather_menu_list if menu_item.GetId() == self.WEATHER_FAVORITE_ID] #get favorite weather
-        self.config.WriteInt("/WeatherMenu/Favorite/Count",len(weather_menu_favorite_labels))
-        for count, pathlabel in enumerate(weather_menu_favorite_labels):
-            self.config.Write("/WeatherMenu/Favorite/Path-{:02d}".format(count), pathlabel)
+        self.folder_favorites.save_config()
+        self.folder_recent.save_config()
+        self.weather_favorites.save_config()
+        self.weather_recent.save_config()
 
     def handle_menu_weather_select(self, event):
         filename = wx.FileSelector("Select a weather file", wildcard="EnergyPlus Weather File(*.epw)|*.epw",
@@ -736,44 +696,4 @@ class EpLaunchFrame(wx.Frame):
         weather_menu_recent_labels =  [menu_item.GetLabel() for menu_item in weather_menu_list if menu_item.GetId() == self.WEATHER_RECENT_ID] #get recent weather
         if filename not in weather_menu_recent_labels:
             self.weather_menu.Append(400, filename)
-
-    def get_menu_first_id(self,kind_of_list):
-        FOLDER_RECENT_ID = 3100
-        FOLDER_FAVORITE_ID = 3200
-        WEATHER_RECENT_ID = 4100
-        WEATHER_FAVORITE_ID = 4200
-        first_menu_id_lookup = [ FOLDER_RECENT_ID, FOLDER_FAVORITE_ID, WEATHER_RECENT_ID, WEATHER_FAVORITE_ID ]
-        return first_menu_id_lookup[ kind_of_list ]
-
-    def get_menu_list_of_files(self, kind_of_list):
-        menu_list = self.weather_menu.GetMenuItems()
-        for count, menu_list_item in enumerate(menu_list):
-            print(count, menu_list_item.GetId(),menu_list_item.GetLabel(), menu_list_item.GetKind())
-
-
-
-        #
-        first_menu_id = self.get_menu_first_id( kind_of_list )
-        list_of_files = []
-        for count in range(0, 8):
-            found = self.menu_bar.FindItemById( first_menu_id + count)
-            if found is not None:
-                print("finding the menu items: ", found.GetLabel(), found.GetId())
-                list_of_files.append(found.GetLabel())
-        return list_of_files
-
-    def put_menu_list_of_files(self, kind_of_list, list_of_menu_items):
-        self.delete_menu_of_files(kind_of_list)
-        first_menu_id = self.get_menu_first_id( kind_of_list )
-
-    def delete_menu_of_files(self, kind_of_list):
-        first_menu_id = self.get_menu_first_id( kind_of_list )
-        list_of_files = []
-        for count in range(0, 8):
-            found = self.menu_bar.FindItemById( first_menu_id + count)
-            if found is not None:
-                position_on_menu = self.menu_bar.FindMenu(found.GetLabel)
-                print("finding the menu item: ", found.GetLabel(), found.GetId())
-                list_of_files.append(found.GetLabel())
-
 
