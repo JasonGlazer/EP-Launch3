@@ -3,10 +3,12 @@ import wx
 
 class FileNameMenus(object):
 
-    def __init__(self, menu, start_separator_id, end_separator_id):
+    def __init__(self, menu, start_separator_id, end_separator_id, config, path_to_config):
         self.menu = menu
         self.start_separator_id = start_separator_id
         self.end_separator_id = end_separator_id
+        self.config = config
+        self.path_to_config = path_to_config
         self.menu_items_for_files = []
 
     def delete_file_list(self):
@@ -54,6 +56,21 @@ class FileNameMenus(object):
         current_menu_item = self.menu.FindItemById(event.GetId())
         print('clicked menu item:', current_menu_item.GetLabel(), current_menu_item.GetId())
 
+    def save_config(self):
+        # in Windows using RegEdit these appear in:
+        #    HKEY_CURRENT_USER\Software\EP-Launch3
+        self.config.WriteInt(self.path_to_config + "/Count",len(self.menu_items_for_files))
+        # save menu items to configuration file
+        menu_labels =  [menu_item.GetLabel() for menu_item in self.menu_items_for_files]
+        for count, menu_label in enumerate(menu_labels):
+            self.config.Write(self.path_to_config + "/Path-{:02d}".format(count), menu_label)
 
-
+    def retrieve_config(self):
+        count_menu_lables = self.config.ReadInt(self.path_to_config + "/Count",0)
+        list_of_labels =[]
+        for count in range(0,count_menu_lables):
+            label = self.config.Read(self.path_to_config + "/Path-{:02d}".format(count))
+            if label:
+                list_of_labels.append(label)
+        self.add_file_name_list(list_of_labels)
 

@@ -225,25 +225,19 @@ class EpLaunchFrame(wx.Frame):
         self.folder_menu = wx.Menu()
         recent_folder_menu = self.folder_menu.Append(301, "Recent", "Recent folders where a workflow as run.")
         self.folder_menu.Append(302, kind=wx.ITEM_SEPARATOR)
-        countFolderRecent = self.config.ReadInt("/FolderMenu/Recent/Count",0)
-        for count in range(0,countFolderRecent):
-            folderName = self.config.Read("/FolderMenu/Recent/Path-{:02d}".format(count))
-            #if folderName:
-            #    self.folder_menu.Append(self.FolderRecentID + count, folderName )
         self.folder_menu.Append(303, kind=wx.ITEM_SEPARATOR)
-        self.folder_recent = FileNameMenus(self.folder_menu, 302, 303)
-        self.folder_recent.add_file_name_list(["c:\\energyplus8-9-0", "c:\\temp", "c:\\documents"])
+        self.folder_recent = FileNameMenus(self.folder_menu, 302, 303, self.config, "/FolderMenu/Recent")
+        self.folder_recent.retrieve_config()
+        #self.folder_recent.add_file_name_list(["c:\\energyplus8-9-0", "c:\\temp", "c:\\documents"])
+        #self.folder_recent.save_config()
 
         self.folder_menu.Append(304, "Favorites")
         self.folder_menu.Append(305, kind=wx.ITEM_SEPARATOR)
-        countFolderFavorite = self.config.ReadInt("/FolderMenu/Favorite/Count",0)
-        for count in range(0,countFolderFavorite):
-            folderName = self.config.Read("/FolderMenu/Favorite/Path-{:02d}".format(count))
-            #if folderName:
-            #    self.folder_menu.Append(self.FolderFavoriteID + count, folderName )
         self.folder_menu.Append(306, kind=wx.ITEM_SEPARATOR)
-        self.folder_favorites = FileNameMenus(self.folder_menu, 305, 306)
-        self.folder_favorites.add_file_name_list(["c:\\energyplus8-6-0\\test", "c:\\energyplus8-7-0\\test", "c:\\energyplus8-8-0\\test", "c:\\energyplus8-9-0\\test"])
+        self.folder_favorites = FileNameMenus(self.folder_menu, 305, 306, self.config, "/FolderMenu/Favorite")
+        self.folder_favorites.retrieve_config()
+        #self.folder_favorites.add_file_name_list(["c:\\energyplus8-6-0\\test", "c:\\energyplus8-7-0\\test", "c:\\energyplus8-8-0\\test", "c:\\energyplus8-9-0\\test"])
+        #self.folder_favorites.save_config()
 
         self.folder_menu.Append(307, "Add Current Folder to Favorites")
         self.folder_menu.Append(308, "Remove Current Folder from Favorites")
@@ -258,29 +252,21 @@ class EpLaunchFrame(wx.Frame):
         self.weather_menu.Append(402, kind=wx.ITEM_SEPARATOR)
         self.weather_menu.Append(403, "Recent")
         self.weather_menu.Append(404, kind=wx.ITEM_SEPARATOR)
-        first_menu_id = self.get_menu_first_id(self.WEATHER_RECENT)
-        countWeatherRecent = self.config.ReadInt("/WeatherMenu/Recent/Count",0)
-        for count in range(0,countWeatherRecent):
-            weatherName = self.config.Read("/WeatherMenu/Recent/Path-{:02d}".format(count))
-            if weatherName:
-                self.weather_menu.Append(first_menu_id + count, weatherName )
         self.weather_menu.Append(405, kind=wx.ITEM_SEPARATOR)
-        self.weather_recent = FileNameMenus(self.weather_menu, 404, 405)
-        self.weather_recent.add_file_name_list(["Chicago.epw", "StLouis.epw", "LosAngeles.epw","Miami.epw"])
+        self.weather_recent = FileNameMenus(self.weather_menu, 404, 405, self.config, "/WeatherMenu/Recent")
+        self.weather_recent.retrieve_config()
+        #self.weather_recent.add_file_name_list(["Chicago.epw", "StLouis.epw", "LosAngeles.epw","Miami.epw"])
+        #self.weather_recent.save_config()
 
         self.weather_menu.Append(406, "Favorites")
         self.weather_menu.Append(407, kind=wx.ITEM_SEPARATOR)
-        countWeatherFavorite = self.config.ReadInt("/WeatherMenu/Favorite/Count",0)
-        for count in range(0,countWeatherFavorite):
-            weatherName = self.config.Read("/WeatherMenu/Favorite/Path-{:02d}".format(count))
-        #    if weatherName:
-        #        self.weather_menu.Append(self.WEATHER_FAVORITE_ID + count, weatherName )
         self.weather_menu.Append(408, kind=wx.ITEM_SEPARATOR)
         self.weather_menu.Append(409, "Add Weather to Favorites")
         self.weather_menu.Append(410, "Remove Weather from Favorites")
-
-        self.weather_favorites = FileNameMenus(self.weather_menu, 407, 408)
-        self.weather_favorites.add_file_name_list(["this", "is", "a","test"])
+        self.weather_favorites = FileNameMenus(self.weather_menu, 407, 408, self.config, "/WeatherMenu/Favorite")
+        self.weather_favorites.retrieve_config()
+        #self.weather_favorites.add_file_name_list(["Springfield.epw", "Champaign.epw", "Effingham.epw"])
+        #self.weather_favorites.save_config()
 
         self.menu_bar.Append(self.weather_menu, "&Weather")
         # disable the menu items that are just information
