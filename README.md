@@ -1,6 +1,8 @@
 # EP-Launch3
 Cross platform replacement for EP-Launch for EnergyPlus
 
+Development has moved to: https://github.com/NREL/EP-Launch
+
 
 ## Testing 
 [![](https://travis-ci.org/JasonGlazer/EP-Launch3.svg?branch=master)](https://travis-ci.org/JasonGlazer/EP-Launch3)
